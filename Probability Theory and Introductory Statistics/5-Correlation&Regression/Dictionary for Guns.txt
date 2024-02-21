@@ -1,0 +1,13 @@
+Dictionary:
+
+violent: violent crime rate (incidents per 100,000 members of the population).
+murder: murder rate (incidents per 100,000).
+robbery: robbery rate (incidents per 100,000).
+prisoners: incarceration rate in the state in the previous year (sentenced prisoners per 100,000 residents; value for the previous year).
+afam: percent of state population that is African-American, ages 10 to 64.
+cauc: percent of state population that is Caucasian, ages 10 to 64.
+male: percent of state population that is male, ages 10 to 29.
+population: state population, in millions of people.
+income: real per capita personal income in the state (US dollars).
+density: population per square mile of land area, divided by 1,000.
+law factor: Does the state have a shall carry law in effect in that year?

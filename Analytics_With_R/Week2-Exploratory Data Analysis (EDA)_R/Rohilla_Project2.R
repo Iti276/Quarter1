@@ -1,0 +1,184 @@
+cat("\014") # clears console
+rm(list = ls()) # clears global environment
+try(dev.off(dev.list()["RStudioGD"]), silent = TRUE) # clears plots
+try(p_unload(p_loaded(), character.only = TRUE), silent = TRUE) 
+#clears packages
+options(scipen = 100) # disables scientific notion for entire R session
+
+#install.packages("pacman")
+library(pacman)
+
+library(ggplot2)
+
+data_2015 <- read.csv('2015.csv')
+head(data_2015)
+
+names(data_2015)
+
+#install.packages("tidyverse")
+library(tidyverse)
+#view(data_2015)
+
+#install.packages("dplyr")
+library(dplyr)
+glimpse(data_2015)
+
+#install.packages("janitor")
+library(janitor)
+#p_load(janitor)
+
+data_2015 <- clean_names(data_2015)
+data_2015
+
+happy_df <- data_2015 %>%
+  select(country, region, happiness_score, freedom)
+happy_df
+
+top_ten_df <- happy_df %>%
+  slice(1:10)
+top_ten_df
+
+no_freedom_df <- happy_df %>%
+  filter(freedom<0.20)
+no_freedom_df 
+
+best_freedom_df <- happy_df %>%
+  arrange(desc(freedom))
+best_freedom_df
+
+data_2015  <- data_2015 %>%
+  mutate(gff_stat =family+freedom+generosity)
+data_2015 
+
+happy_summary <-happy_df %>%
+  summarise(mean_happiness = mean(happiness_score),
+         max_happiness = max(happiness_score),
+         mean_freedom = mean(freedom),
+         max_freedom =max(freedom))
+happy_summary
+
+regional_stats_df <- happy_df %>%
+  group_by(region) %>%
+  summarise(
+    country_count = n(),
+    mean_happiness = mean(happiness_score),
+    mean_freedom = mean(freedom)
+     )
+regional_stats_df
+
+WE <- data_2015 %>%
+  filter(region == 'Western Europe')  %>%
+  arrange(happiness_score)  %>%
+  head(10)
+SSA <- data_2015 %>%
+  filter(region == 'Sub-Saharan Africa')  %>%
+  arrange(desc(happiness_score))  %>%
+  head(10)  
+
+avg_gdp_we <- mean(WE$economy_gdp_per_capita)
+avg_gdp_ssa <- mean(SSA$economy_gdp_per_capita)
+
+gdp_df <-  data.frame(
+  europe_gdp = c(avg_gdp_we),
+  africa_gdp = c(avg_gdp_ssa)
+)
+gdp_df
+
+#install.packages("ggplot2")
+#library(ggplot2)
+min_happiness <- min(regional_stats_df$mean_happiness)
+max_happiness <- max(regional_stats_df$mean_happiness)
+min_freedom <- min(regional_stats_df$mean_freedom)
+max_freedom <- max(regional_stats_df$mean_freedom)
+
+custom_colors <- c(
+  "#FF0000", "#FF9933", "#666633", "#009933", "#33CC66",
+  "#339999", "#3399FF", "#DA70D6", "#FF69B4", "#FF1493"
+)
+
+ggplot(data = regional_stats_df, aes(x = mean_happiness, y = mean_freedom, color = region)) +
+  geom_point() +  # Add points for the scatterplot
+  scale_color_manual(
+    values = custom_colors,
+    breaks = unique(regional_stats_df$region),
+    labels = unique(regional_stats_df$region)
+  ) +
+  geom_segment(aes(x = min_happiness, y = min_freedom, xend = max_happiness, yend = max_freedom), color = "black")
+
+######################################Assignmnet2#################################################################
+
+baseball <- read.csv('baseball.csv')
+
+class_types <- class(baseball)
+class_types
+
+age_stats_df <- baseball %>%
+  group_by(Age) %>%
+  summarise(
+    Count = n(),                    
+    HR = mean(HR, na.rm = TRUE),     
+    H = mean(H, na.rm = TRUE),   
+    R = mean(R, na.rm = TRUE)   
+  )
+age_stats_df
+
+
+baseball <- baseball %>%
+  filter(AB > 0)
+baseball
+
+baseball <- baseball %>%
+  mutate(BA = H / AB)
+baseball
+
+baseball$BA <- round(baseball$BA, 3)
+baseball
+
+baseball <- baseball %>%
+  mutate(OBP = (H + BB) / (AB + BB))
+baseball
+
+baseball$OBP <- round(baseball$OBP, 3)
+baseball
+
+strikeout_artist <- baseball %>%
+  arrange(desc(SO)) %>%
+  head(10)
+strikeout_artist
+
+ggplot(data = baseball, aes(x = HR, y = RBI)) +
+  geom_point() +
+  labs(x = "HR", y = "RBI")
+
+eligible_df <- baseball %>%
+  filter(AB >= 300 | G >= 100)
+eligible_df
+
+ggplot(data = eligible_df, aes(x = BA)) +
+  geom_histogram(binwidth = 0.025, fill = "green", color = "blue") +
+  labs(x = "BA", y = "count") +
+  theme_minimal()
+
+eligible_df <- eligible_df |>
+  mutate(RankHR =rank(-1 * HR, ties.method = "min"))
+eligible_df
+
+eligible_df <- eligible_df |>
+  mutate(RankRBI =rank(-1 * RBI, ties.method = "min")) %>%
+  mutate(RankOBP =rank(-1 * OBP, ties.method = "min"))
+eligible_df
+
+
+eligible_df <- eligible_df %>%
+  mutate(TotalRank = RankHR + RankRBI + RankOBP)
+eligible_df
+
+mvp_candidates <- eligible_df %>%
+  arrange(TotalRank) %>%
+  head(20)
+mvp_candidates
+
+mvp_candidates_abbreviated <- mvp_candidates %>%
+  select(First, Last, RankHR, RankRBI, RankOBP)
+mvp_candidates_abbreviated
+
